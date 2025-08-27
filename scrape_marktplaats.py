@@ -143,7 +143,6 @@ def mark_listings_active(conn: sqlite3.Connection, ids: List[str]) -> None:
 def notify_new_listing(listing: Dict[str, Any]) -> None:
     """Send an alert for a newly discovered listing."""
     print(f"New listing: {listing.get('title')} -> {listing.get('url')}")
- main
 
 
 def is_commercial(listing: Dict[str, Any]) -> bool:
@@ -343,7 +342,6 @@ def main() -> None:
         print(f"Total products scraped: {len(products)}")
     finally:
         conn.close()
-main
 
 
 if __name__ == "__main__":
