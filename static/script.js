@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('modalTitle').textContent = card.dataset.title || '';
       document.getElementById('modalPrice').textContent = card.dataset.price || 'N/A';
       document.getElementById('modalLocation').textContent = card.dataset.location || 'N/A';
+      document.getElementById('modalDate').textContent = card.dataset.date || 'N/A';
+      document.getElementById('modalSeller').textContent = card.dataset.seller || 'N/A';
+      document.getElementById('modalShipping').textContent = card.dataset.shipping || 'N/A';
+      document.getElementById('modalDescription').textContent = card.dataset.description || 'No description available';
       const img = document.getElementById('modalImage');
       if (card.dataset.image) {
         img.src = card.dataset.image;

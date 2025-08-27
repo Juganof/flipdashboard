@@ -1,3 +1,20 @@
 .listing-card {
   cursor: pointer;
 }
+
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.modal-body p {
+  margin-bottom: 0.5rem;
+}
+
+#modalDescription {
+  white-space: pre-wrap;
+}
+
+.listing-card .badge + .badge {
+  margin-left: 0.25rem;
+}
