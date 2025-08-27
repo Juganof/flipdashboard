@@ -32,6 +32,9 @@
               {% if item.shipping_options %}
               <span class="badge bg-success">Shipping</span>
               {% endif %}
+              {% if item.is_broken %}
+              <span class="badge bg-danger">Broken</span>
+              {% endif %}
             </div>
           </div>
         </div>
