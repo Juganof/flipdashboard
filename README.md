@@ -17,3 +17,13 @@ python scrape_marktplaats.py
 ```
 
 The script will output each product's title, price and URL, and print the total number of products scraped across all search result pages.
+
+## Dashboard
+
+To view the listings in a simple web dashboard, run:
+
+```bash
+python dashboard.py
+```
+
+Then open [http://localhost:5000](http://localhost:5000) in your browser to see the table of listings.
