@@ -13,11 +13,15 @@ import json
 import random
 import sqlite3
 import time
+import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import requests
 from bs4 import BeautifulSoup
+
+
+logger = logging.getLogger(__name__)
 
 SEARCH_URL = "https://www.marktplaats.nl/q/solis+espresso+apparaat"
 DB_PATH = "data.db"
@@ -146,6 +150,10 @@ def notify_new_listing(listing: Dict[str, Any]) -> None:
     print(f"New listing: {listing.get('title')} -> {listing.get('url')}")
 
 
+
+main
+
+
 def is_commercial(listing: Dict[str, Any]) -> bool:
     """Return True if the listing is a commercial advertisement."""
     seller = listing.get("sellerInformation", {})
@@ -206,8 +214,12 @@ def fetch_listing_details(vip_url: str) -> Dict[str, Any]:
         cannot be located.
     """
 
-    response = requests.get(vip_url, headers=DEFAULT_HEADERS, timeout=30)
-    response.raise_for_status()
+    try:
+        response = requests.get(vip_url, headers=DEFAULT_HEADERS, timeout=30)
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        logger.warning("Failed to fetch listing details from %s: %s", vip_url, exc)
+        return {}
     soup = BeautifulSoup(response.text, "html.parser")
     try:
         data = _parse_listing_script(soup)
@@ -344,6 +356,10 @@ def main() -> None:
         print(f"Total products scraped: {len(products)}")
     finally:
         conn.close()
+
+
+
+main
 
 
 if __name__ == "__main__":
