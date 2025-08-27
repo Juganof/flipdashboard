@@ -150,10 +150,6 @@ def notify_new_listing(listing: Dict[str, Any]) -> None:
     print(f"New listing: {listing.get('title')} -> {listing.get('url')}")
 
 
-
-main
-
-
 def is_commercial(listing: Dict[str, Any]) -> bool:
     """Return True if the listing is a commercial advertisement."""
     seller = listing.get("sellerInformation", {})
@@ -217,7 +213,7 @@ def fetch_listing_details(vip_url: str) -> Dict[str, Any]:
     try:
         response = requests.get(vip_url, headers=DEFAULT_HEADERS, timeout=30)
         response.raise_for_status()
-    except requests.HTTPError as exc:
+    except requests.RequestException as exc:
         logger.warning("Failed to fetch listing details from %s: %s", vip_url, exc)
         return {}
     soup = BeautifulSoup(response.text, "html.parser")
@@ -357,9 +353,6 @@ def main() -> None:
     finally:
         conn.close()
 
-
-
-main
 
 
 if __name__ == "__main__":
