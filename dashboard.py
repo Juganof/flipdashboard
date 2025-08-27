@@ -13,7 +13,10 @@ TEMPLATE = """
     <h1>Listings Dashboard</h1>
     <table border="1">
         <tr>
+ codex/create-dashboard-for-listings-ejd4kb
             <th>Image</th>
+=======
+ main
             <th>Title</th>
             <th>Price</th>
             <th>Location</th>
@@ -21,11 +24,14 @@ TEMPLATE = """
         </tr>
         {% for item in listings %}
         <tr>
+ codex/create-dashboard-for-listings-ejd4kb
             <td>
                 {% if item.image_url %}
                 <img src="{{ item.image_url }}" alt="{{ item.title }}" width="100" />
                 {% else %}N/A{% endif %}
             </td>
+=======
+ main
             <td>{{ item.title }}</td>
             <td>{{ item.price or 'N/A' }}</td>
             <td>{{ item.location or 'N/A' }}</td>

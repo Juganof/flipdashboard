@@ -26,4 +26,8 @@ To view the listings in a simple web dashboard, run:
 python dashboard.py
 ```
 
+codex/create-dashboard-for-listings-ejd4kb
 Then open [http://localhost:5000](http://localhost:5000) in your browser to see the table of listings with their images.
+=======
+Then open [http://localhost:5000](http://localhost:5000) in your browser to see the table of listings.
+main
