@@ -12,12 +12,14 @@ data.
 import json
 import sqlite3
 import time
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import requests
 from bs4 import BeautifulSoup
 
 SEARCH_URL = "https://www.marktplaats.nl/q/solis+espresso+apparaat"
+DB_PATH = "data.db"
 
 DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -33,6 +35,76 @@ DEFAULT_HEADERS = {
     "TE": "trailers",
 }
 
+
+
+def _init_db(conn: sqlite3.Connection) -> None:
+    """Create the listings table if it does not yet exist."""
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS listings (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            price REAL,
+            status TEXT,
+            last_seen TEXT,
+            final_price REAL,
+            url TEXT
+        )
+        """
+    )
+    conn.commit()
+
+
+def _update_database(products: List[Dict[str, Any]]) -> None:
+    """Insert new listings or update existing records in the SQLite database."""
+
+    conn = sqlite3.connect(DB_PATH)
+    _init_db(conn)
+    cur = conn.cursor()
+    now = datetime.utcnow().isoformat()
+
+    seen_ids = set()
+    for product in products:
+        seen_ids.add(str(product["id"]))
+        price = None
+        if product.get("price"):
+            try:
+                price = float(product["price"].replace("€", ""))
+            except ValueError:
+                price = None
+        cur.execute(
+            """
+            INSERT INTO listings (id, title, price, status, last_seen, url)
+            VALUES (?, ?, ?, 'available', ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                title=excluded.title,
+                price=excluded.price,
+                status='available',
+                last_seen=excluded.last_seen,
+                url=excluded.url
+            """,
+            (
+                product.get("id"),
+                product.get("title"),
+                price,
+                now,
+                product.get("url"),
+            ),
+        )
+
+    # Mark listings not seen in this scrape as sold
+    cur.execute("SELECT id FROM listings WHERE status='available'")
+    existing_ids = {row[0] for row in cur.fetchall()}
+    missing = existing_ids - seen_ids
+    for listing_id in missing:
+        cur.execute(
+            "UPDATE listings SET status='sold', final_price=price, price=NULL WHERE id=?",
+            (listing_id,),
+        )
+
+    conn.commit()
+    conn.close()
 
 def init_db(path: str = "listings.db") -> sqlite3.Connection:
     """Create the listings table if needed and return a connection."""
@@ -71,6 +143,7 @@ def mark_listings_active(conn: sqlite3.Connection, ids: List[str]) -> None:
 def notify_new_listing(listing: Dict[str, Any]) -> None:
     """Send an alert for a newly discovered listing."""
     print(f"New listing: {listing.get('title')} -> {listing.get('url')}")
+ main
 
 
 def is_commercial(listing: Dict[str, Any]) -> bool:
@@ -218,6 +291,13 @@ def fetch_all_listings(url: str) -> List[Dict[str, Any]]:
 
 
 def main() -> None:
+
+    products = fetch_all_listings(SEARCH_URL)
+    _update_database(products)
+    with open("marktplaats_listings.json", "w") as f:
+        json.dump(products, f, indent=4)
+    print(f"Total products scraped: {len(products)}")
+
     conn = init_db()
     try:
         products = fetch_all_listings(SEARCH_URL)
@@ -234,6 +314,7 @@ def main() -> None:
         print(f"Total products scraped: {len(products)}")
     finally:
         conn.close()
+main
 
 
 if __name__ == "__main__":
