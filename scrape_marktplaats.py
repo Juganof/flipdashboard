@@ -10,6 +10,7 @@ data.
 """
 
 import json
+import sqlite3
 import time
 from typing import Any, Dict, List, Optional
 
@@ -31,6 +32,45 @@ DEFAULT_HEADERS = {
     "Sec-Fetch-User": "?1",
     "TE": "trailers",
 }
+
+
+def init_db(path: str = "listings.db") -> sqlite3.Connection:
+    """Create the listings table if needed and return a connection."""
+    conn = sqlite3.connect(path)
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS listings (id TEXT PRIMARY KEY, data TEXT, status TEXT)"
+    )
+    return conn
+
+
+def save_listings(conn: sqlite3.Connection, listings: List[Dict[str, Any]]) -> None:
+    """Insert listings into the database with a default ``new`` status."""
+    for listing in listings:
+        conn.execute(
+            "INSERT OR IGNORE INTO listings (id, data, status) VALUES (?, ?, 'new')",
+            (listing["id"], json.dumps(listing)),
+        )
+    conn.commit()
+
+
+def get_new_listings(conn: sqlite3.Connection) -> tuple[List[Dict[str, Any]], List[str]]:
+    """Return listings marked as ``new`` along with their ids."""
+    cur = conn.execute("SELECT id, data FROM listings WHERE status='new'")
+    rows = cur.fetchall()
+    listings = [json.loads(row[1]) for row in rows]
+    ids = [row[0] for row in rows]
+    return listings, ids
+
+
+def mark_listings_active(conn: sqlite3.Connection, ids: List[str]) -> None:
+    """Mark listings with the provided ids as ``active``."""
+    conn.executemany("UPDATE listings SET status='active' WHERE id=?", [(i,) for i in ids])
+    conn.commit()
+
+
+def notify_new_listing(listing: Dict[str, Any]) -> None:
+    """Send an alert for a newly discovered listing."""
+    print(f"New listing: {listing.get('title')} -> {listing.get('url')}")
 
 
 def is_commercial(listing: Dict[str, Any]) -> bool:
@@ -178,10 +218,22 @@ def fetch_all_listings(url: str) -> List[Dict[str, Any]]:
 
 
 def main() -> None:
-    products = fetch_all_listings(SEARCH_URL)
-    with open("marktplaats_listings.json", "w") as f:
-        json.dump(products, f, indent=4)
-    print(f"Total products scraped: {len(products)}")
+    conn = init_db()
+    try:
+        products = fetch_all_listings(SEARCH_URL)
+        save_listings(conn, products)
+
+        new_listings, ids = get_new_listings(conn)
+        for listing in new_listings:
+            notify_new_listing(listing)
+        if ids:
+            mark_listings_active(conn, ids)
+
+        with open("marktplaats_listings.json", "w") as f:
+            json.dump(products, f, indent=4)
+        print(f"Total products scraped: {len(products)}")
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
