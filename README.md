@@ -1,6 +1,6 @@
 # Marktplaats Scraper
 
-This repository contains a simple Python script to fetch product listings from a Marktplaats search page.
+This repository contains a simple Python script to fetch product listings from all pages of a Marktplaats search.
 
 ## Usage
 
@@ -16,4 +16,4 @@ pip install -r requirements.txt
 python scrape_marktplaats.py
 ```
 
-The script will output each product's title, price and URL, and print the total number of products scraped from the provided search page.
+The script will output each product's title, price and URL, and print the total number of products scraped across all search result pages.
