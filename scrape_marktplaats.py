@@ -10,6 +10,7 @@ data.
 """
 
 import json
+import random
 import sqlite3
 import time
 from datetime import datetime
@@ -283,6 +284,7 @@ def fetch_listings(url: str) -> List[Dict[str, Any]]:
 
         # Fill in any missing fields from the listing detail page.
         details = fetch_listing_details(product["url"])
+        time.sleep(random.uniform(1, 2))
         for key, value in details.items():
             if product.get(key) in (None, [], {}):
                 product[key] = value
