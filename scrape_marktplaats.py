@@ -10,6 +10,7 @@ data.
 """
 
 import json
+import time
 from typing import Any, Dict, List, Optional
 
 import requests
@@ -53,7 +54,19 @@ def fetch_listing_details(vip_url: str) -> Dict[str, Any]:
         cannot be located.
     """
 
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "TE": "trailers",
+    }
     response = requests.get(vip_url, headers=headers, timeout=30)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
@@ -90,7 +103,19 @@ def fetch_listings(url: str) -> List[Dict[str, Any]]:
     fall back to fetching the listing's detail page.
     """
 
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "TE": "trailers",
+    }
     response = requests.get(url, headers=headers, timeout=30)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
@@ -123,7 +148,7 @@ def fetch_listings(url: str) -> List[Dict[str, Any]]:
             "url": "https://www.marktplaats.nl" + item.get("vipUrl", ""),
             "image_url": image_url,
             "description": item.get("description"),
-            "seller_name": seller.get("sellerName"),
+            "seller": seller,
             "seller_rating": seller.get("sellerReviewAverage")
             or seller.get("sellerReviewScore"),
             "start_date": item.get("startDate") or item.get("date"),
@@ -159,14 +184,15 @@ def fetch_all_listings(url: str) -> List[Dict[str, Any]]:
         all_products.extend(new_products)
         seen_ids.update(p["id"] for p in new_products)
         page += 1
+        time.sleep(2) # Add a 2-second delay between page requests
 
     return all_products
 
 
 def main() -> None:
     products = fetch_all_listings(SEARCH_URL)
-    for p in products:
-        print(f"{p['title']} - {p['price']} - {p['url']}")
+    with open("marktplaats_listings.json", "w") as f:
+        json.dump(products, f, indent=4)
     print(f"Total products scraped: {len(products)}")
 
 
