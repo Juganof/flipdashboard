@@ -156,6 +156,31 @@ def is_commercial(listing: Dict[str, Any]) -> bool:
     return False
 
 
+def is_broken_product(listing: Dict[str, Any]) -> bool:
+    """Return ``True`` if a listing advertises a damaged item.
+
+    The check looks for common keywords that sellers use when offering
+    products that are defective or only suitable for spare parts.  Both the
+    description text and any attribute values are inspected.
+    """
+
+    keywords = ["defect", "broken", "parts", "spares", "repair"]
+
+    # Collect text fields to scan for the keywords.
+    text_parts: List[str] = []
+    description = listing.get("description") or ""
+    text_parts.append(description.lower())
+
+    attributes = listing.get("attributes") or []
+    for attr in attributes:
+        for value in attr.values():
+            if isinstance(value, str):
+                text_parts.append(value.lower())
+
+    text = " ".join(text_parts)
+    return any(keyword in text for keyword in keywords)
+
+
 def _parse_listing_script(soup: BeautifulSoup) -> Dict[str, Any]:
     """Extract the JSON payload from the ``__NEXT_DATA__`` script element."""
 
@@ -262,6 +287,10 @@ def fetch_listings(url: str) -> List[Dict[str, Any]]:
         for key, value in details.items():
             if product.get(key) in (None, [], {}):
                 product[key] = value
+
+        product["is_broken"] = is_broken_product(product)
+        if not product["is_broken"]:
+            continue
 
         products.append(product)
 
