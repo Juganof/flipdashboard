@@ -35,12 +35,18 @@ def fetch_listings(url: str) -> List[Dict[str, str]]:
         price_info = item.get("priceInfo", {})
         price_cents = price_info.get("priceCents")
         price = f"€{price_cents / 100:.2f}" if price_cents is not None else None
+        image_urls = item.get("imageUrls") or []
+        image_url = None
+        if image_urls:
+            first = image_urls[0]
+            image_url = "https:" + first if first.startswith("//") else first
         product = {
             "id": item.get("itemId"),
             "title": item.get("title"),
             "price": price,
             "location": item.get("location", {}).get("locationName"),
             "url": "https://www.marktplaats.nl" + item.get("vipUrl", ""),
+            "image_url": image_url,
         }
         products.append(product)
     return products
