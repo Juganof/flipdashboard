@@ -10,6 +10,7 @@ data.
 """
 
 import json
+import random
 import sqlite3
 import time
 import logging
@@ -148,6 +149,9 @@ def notify_new_listing(listing: Dict[str, Any]) -> None:
     """Send an alert for a newly discovered listing."""
     print(f"New listing: {listing.get('title')} -> {listing.get('url')}")
 
+
+
+main
 
 
 def is_commercial(listing: Dict[str, Any]) -> bool:
@@ -292,6 +296,7 @@ def fetch_listings(url: str) -> List[Dict[str, Any]]:
 
         # Fill in any missing fields from the listing detail page.
         details = fetch_listing_details(product["url"])
+        time.sleep(random.uniform(1, 2))
         for key, value in details.items():
             if product.get(key) in (None, [], {}):
                 product[key] = value
@@ -352,6 +357,9 @@ def main() -> None:
     finally:
         conn.close()
 
+
+
+main
 
 
 if __name__ == "__main__":
