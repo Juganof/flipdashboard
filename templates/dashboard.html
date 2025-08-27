@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Listings Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container my-4">
+    <h1 class="mb-4">Listings Dashboard</h1>
+    <div class="row g-3">
+      {% for item in listings %}
+      <div class="col-md-4">
+        <div class="card listing-card h-100" role="button"
+             data-title="{{ item.title }}"
+             data-price="{{ item.price }}"
+             data-location="{{ item.location }}"
+             data-image="{{ item.image_url }}"
+             data-url="{{ item.url }}">
+          {% if item.image_url %}
+          <img src="{{ item.image_url }}" class="card-img-top" alt="{{ item.title }}">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ item.title }}</h5>
+            <p class="card-text">{{ item.price or 'N/A' }}<br>{{ item.location or 'N/A' }}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="mt-3">Total products scraped: {{ listings|length }}</p>
+  </div>
+
+  <div class="modal fade" id="listingModal" tabindex="-1" aria-labelledby="listingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <img id="modalImage" class="img-fluid mb-3" alt="">
+          <p><strong>Price:</strong> <span id="modalPrice"></span></p>
+          <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+        </div>
+        <div class="modal-footer">
+          <a id="modalUrl" href="#" target="_blank" class="btn btn-primary">View on Marktplaats</a>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
