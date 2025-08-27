@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from scrape_marktplaats import fetch_all_listings, SEARCH_URL
 
+
 app = Flask(__name__)
 
 
@@ -12,3 +13,4 @@ def index():
 
 if __name__ == "__main__":
     app.run(debug=True)
+

@@ -12,19 +12,29 @@
     <h1 class="mb-4">Listings Dashboard</h1>
     <div class="row g-3">
       {% for item in listings %}
-      <div class="col-md-4">
+      <div class="col-sm-6 col-md-4 col-lg-3">
         <div class="card listing-card h-100" role="button"
              data-title="{{ item.title }}"
              data-price="{{ item.price }}"
              data-location="{{ item.location }}"
              data-image="{{ item.image_url }}"
-             data-url="{{ item.url }}">
+             data-url="{{ item.url }}"
+             data-description="{{ item.description }}"
+             data-seller="{{ item.seller }}"
+             data-date="{{ item.posting_date }}"
+             data-shipping="{{ item.shipping_info }}">
           {% if item.image_url %}
           <img src="{{ item.image_url }}" class="card-img-top" alt="{{ item.title }}">
           {% endif %}
           <div class="card-body">
             <h5 class="card-title">{{ item.title }}</h5>
             <p class="card-text">{{ item.price or 'N/A' }}<br>{{ item.location or 'N/A' }}</p>
+            {% if item.seller and 'pro' in item.seller|lower %}
+            <span class="badge bg-info text-dark">Pro Seller</span>
+            {% endif %}
+            {% if item.shipping_info %}
+            <span class="badge bg-success">Shipping</span>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -44,6 +54,10 @@
           <img id="modalImage" class="img-fluid mb-3" alt="">
           <p><strong>Price:</strong> <span id="modalPrice"></span></p>
           <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+          <p><strong>Date:</strong> <span id="modalDate"></span></p>
+          <p><strong>Seller:</strong> <span id="modalSeller"></span></p>
+          <p><strong>Shipping:</strong> <span id="modalShipping"></span></p>
+          <p id="modalDescription" class="mt-3"></p>
         </div>
         <div class="modal-footer">
           <a id="modalUrl" href="#" target="_blank" class="btn btn-primary">View on Marktplaats</a>
