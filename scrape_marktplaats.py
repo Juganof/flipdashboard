@@ -54,10 +54,17 @@ def _init_db(conn: sqlite3.Connection) -> None:
             status TEXT,
             last_seen TEXT,
             final_price REAL,
-            url TEXT
+            url TEXT,
+            start_date TEXT,
+            highest_bid REAL
         )
         """
     )
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(listings)")}
+    if "start_date" not in columns:
+        conn.execute("ALTER TABLE listings ADD COLUMN start_date TEXT")
+    if "highest_bid" not in columns:
+        conn.execute("ALTER TABLE listings ADD COLUMN highest_bid REAL")
     conn.commit()
 
 
@@ -80,14 +87,16 @@ def _update_database(products: List[Dict[str, Any]]) -> None:
                 price = None
         cur.execute(
             """
-            INSERT INTO listings (id, title, price, status, last_seen, url)
-            VALUES (?, ?, ?, 'available', ?, ?)
+            INSERT INTO listings (id, title, price, status, last_seen, url, start_date, highest_bid)
+            VALUES (?, ?, ?, 'available', ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 title=excluded.title,
                 price=excluded.price,
                 status='available',
                 last_seen=excluded.last_seen,
-                url=excluded.url
+                url=excluded.url,
+                start_date=COALESCE(start_date, excluded.start_date),
+                highest_bid=excluded.highest_bid
             """,
             (
                 product.get("id"),
@@ -95,6 +104,8 @@ def _update_database(products: List[Dict[str, Any]]) -> None:
                 price,
                 now,
                 product.get("url"),
+                product.get("start_date"),
+                product.get("highest_bid"),
             ),
         )
 
@@ -230,6 +241,28 @@ def fetch_listing_details(vip_url: str) -> Dict[str, Any]:
     )
 
     seller = listing.get("sellerInformation") or {}
+    bidding = listing.get("bidding") or {}
+    highest_bid = None
+    if isinstance(bidding, dict):
+        candidate = (
+            bidding.get("highestBid")
+            or bidding.get("currentBid")
+            or bidding.get("startingBid")
+        )
+        if isinstance(candidate, dict):
+            cents = (
+                candidate.get("value", {}).get("cents")
+                or candidate.get("cents")
+                or candidate.get("amountCents")
+            )
+            if cents is not None:
+                highest_bid = cents / 100
+        elif candidate is not None:
+            try:
+                highest_bid = float(candidate) / 100
+            except (TypeError, ValueError):
+                highest_bid = None
+
     return {
         "description": listing.get("description"),
         "seller_name": seller.get("sellerName"),
@@ -238,6 +271,7 @@ def fetch_listing_details(vip_url: str) -> Dict[str, Any]:
         "start_date": listing.get("startDate") or listing.get("date"),
         "shipping_options": listing.get("shippingOptions"),
         "attributes": listing.get("attributes"),
+        "highest_bid": highest_bid,
     }
 
 
